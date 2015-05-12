@@ -1,0 +1,41 @@
+import time
+import matplotlib.pyplot as plt
+
+
+def data_gen():
+    a=data_gen.a
+    if a>10:
+        data_gen.a=1
+    data_gen.a=data_gen.a+1
+    return range (a,a+10)
+
+def run(*args):
+    background = fig.canvas.copy_from_bbox(ax.bbox)
+
+    while 1:
+        time.sleep(0.1)
+        # restore the clean slate background
+        fig.canvas.restore_region(background)
+        # update the data
+        ydata = data_gen()
+        xdata=range(len(ydata))
+
+        line.set_data(xdata, ydata)
+
+        # just draw the animated artist
+        ax.draw_artist(line)
+        # just redraw the axes rectangle
+        fig.canvas.blit(ax.bbox)
+
+data_gen.a=1
+fig = plt.figure()
+ax = fig.add_subplot(111)
+line, = ax.plot([], [], animated=True)
+ax.set_ylim(0, 20)
+ax.set_xlim(0, 10)
+ax.grid()
+
+manager = plt.get_current_fig_manager()
+manager.window.after(100, run)
+
+plt.show()
