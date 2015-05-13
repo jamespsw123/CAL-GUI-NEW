@@ -314,7 +314,7 @@ class MainFrame(wx.Frame):
 
 		sb1 = wx.StaticBox(leftpane,label='Basic Settings',style=wx.TE_CENTRE)
 		self.sl = wx.lib.intctrl.IntCtrl(leftpane, 90, 0, size=(30, -1),style=wx.TE_RIGHT)
-		self.setbutton1 = wx.Button(leftpane, label='SET', size=(30, 20))	
+		self.setbutton1 = wx.Button(leftpane, label='SET', size=(40, 20))	
 		boxsizer1 = wx.StaticBoxSizer(sb1, wx.HORIZONTAL)
 		boxsizer1.Add(wx.StaticText(leftpane, label="Sample Length:"), 
 		    flag=wx.LEFT|wx.TOP|wx.BOTTOM, border=5)		
@@ -325,7 +325,7 @@ class MainFrame(wx.Frame):
 
 		sb3 = wx.StaticBox(leftpane,label='Sample Transportation',style=wx.TE_CENTRE)
 		self.sms = wx.lib.intctrl.IntCtrl(leftpane, 91, 120, size=(30, -1),style=wx.TE_RIGHT)
-		self.setbutton2 = wx.Button(leftpane, label='SET', size=(30, 20))	
+		self.setbutton2 = wx.Button(leftpane, label='SET', size=(40, 20))	
 		boxsizer3 = wx.StaticBoxSizer(sb3, wx.HORIZONTAL)
 		boxsizer3.Add(wx.StaticText(leftpane, label="Stepper Mottor Speed:"), 
 		    flag=wx.LEFT|wx.TOP|wx.BOTTOM, border=5)		
