@@ -26,7 +26,7 @@ def Stepper(position, speed,SampleLength,position_num):
 	speed_ = str(speed_)
 	Speed = speed_ + 'Spd' 
 	position = str(position_num) + 'P'
-	direct = '0' + 'E'# 'E' stands for end.
+	direct = '1' + 'E'# 'E' stands for end.
 	cmd = Distance + Speed + position + direct
 	communication_send(addr, "stm", cmd)
 
