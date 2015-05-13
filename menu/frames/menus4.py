@@ -45,6 +45,16 @@ ser = serial.Serial(
 				)
 """
 
+# read temperature from (mcp3008+ad8495) module
+def read3008(channel):
+	data = ReadChannel(channel) # ReadChannel is defined in FastRead.py, assume thermocouple is on channel 0
+	volt = ConvertVolts(data, 3)
+	# the temperature-volt relationship of thermocouple amplifier AD8495 is:
+	# temp = (Vout - 1.25)/0.005
+	temp = (volt - 1.25)/0.005
+	return temp
+
+
 
 # to convert time interval list into a list of time coordinates for drawing the presets
 def newlist(l):
@@ -532,18 +542,13 @@ class MainFrame(wx.Frame):
 		"""
 		# read the tempertaure from the IR SENSOR,
 		# the data is read out from the ADC MCP3008, which converts the anolog signals to digital
-		data = ReadChannel(0) # ReadChannel is defined in FastRead.py
-		volt = ConvertVolts(data, 3)
-		# the temperature-volt relationship of AD8495 is:
-		# temp = (Vout - 1.25)/0.005
-		temp = (volt - 1.25)/0.005
+		temp = read3008(0)
 		print "current temp:"
 		print temp
 
 
 	def on_redraw_timer(self, event):
-		hex_temp = getPV("01",ser)[7:11]
-		temp = int(hex_temp,16)
+		temp = read3008(0)
 		print "temp:"
 		print temp
 		print "Current set-temp:"
@@ -655,8 +660,9 @@ class MainFrame(wx.Frame):
 		self.Start_Time = time.time()
 		self.index = 0
 		self.GridIndex = 0
-		hex_temp = getPV("01", ser)[7:11]
-		temp = int(hex_temp,16)
+		#hex_temp = getPV("01", ser)[7:11]
+		#temp = int(hex_temp,16)
+		temp = read3008(0)
 		print "temp:" 
 		print temp
 		
