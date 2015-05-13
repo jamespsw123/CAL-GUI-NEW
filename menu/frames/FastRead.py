@@ -13,21 +13,21 @@ Vref = 3.3
 # Function to read SPI data from MCP3008 chip
 def ReadChannel(channel):
 	# When using MCP3008(10 bit adc)
-	#adc = spi.xfer2([1,(8+channel)<<4,0])
-	#data = ((adc[1]&3) << 8) + adc[2]
+	adc = spi.xfer2([1,(8+channel)<<4,0])
+	data = ((adc[1]&3) << 8) + adc[2]
 
 	# For 12bit adc(MCP3208/MCP3204)
-	adc = spi.xfer2([(6 + (channel >> 2)), ((channel &3) << 6), 0])
-	data = ((adc[1]&15 << 8) + (adc[2]))
+	# adc = spi.xfer2([(6 + (channel >> 2)), ((channel &3) << 6), 0])
+	# data = ((adc[1]&15 << 8) + (adc[2]))
 	return data
 
 # Function to convert data to voltage level,
 # Rounded to specified number of decimal places.
 def ConvertVolts(data, places):
 	# When using MCP3008(10 bit adc)
-	# volts = (data*Vref)/float(1023)
+	volts = (data*Vref)/float(1023)
 	# When using MCP3208(12 bit adc)
-	volts = (data*Vref)/float(4095)
+	# volts = (data*Vref)/float(4095)
 	volts = round(volts, places)
 	return volts
 

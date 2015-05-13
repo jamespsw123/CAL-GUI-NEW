@@ -523,10 +523,24 @@ class MainFrame(wx.Frame):
 		print temp
 
 	def onGetTemp(self, event):
+		"""
+		# this function is reading the temperature from the furnace built-in controller
 		hex_temp = getPV("01", ser)[7:11]
 		temp = int(hex_temp,16)
 		print "current temp:" 
 		print temp
+		"""
+		# read the tempertaure from the IR SENSOR,
+		# the data is read out from the ADC MCP3008, which converts the anolog signals to digital
+		data = ReadChannel(0) # ReadChannel is defined in FastRead.py
+		volt = ConvertVolts(data, 3)
+		# the temperature-volt relationship of AD8495 is:
+		# temp = (Vout - 1.25)/0.005
+		temp = (volt - 1.25)/0.005
+		print "current temp:"
+		print temp
+
+
 	def on_redraw_timer(self, event):
 		hex_temp = getPV("01",ser)[7:11]
 		temp = int(hex_temp,16)
