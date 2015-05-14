@@ -7,3 +7,4 @@ This library is used to control the CAL system at the University of Pittsburgh S
 - [spidev](https://pypi.python.org/pypi/spidev)
 - [numpy](http://www.numpi.org)
 - [matplotlib](http://matplotlib.org/)
+- [smbus](https://pypi.python.org/pypi/smbus-cffi/0.4.1)
