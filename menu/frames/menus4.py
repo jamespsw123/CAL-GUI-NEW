@@ -47,12 +47,18 @@ ser = serial.Serial(
 
 # read temperature from (mcp3008+ad8495) module
 def read3008(channel):
-	data = ReadChannel(channel) # ReadChannel is defined in FastRead.py, assume thermocouple is on channel 0
-	volt = ConvertVolts(data, 3)
-	# the temperature-volt relationship of thermocouple amplifier AD8495 is:
-	# temp = (Vout - 1.25)/0.005
+	data = ReadChannel_10bit(channel) # ReadChannel is defined in FastRead.py, assume thermocouple is on channel 0
+	volt = ConvertVolts_10bit(data, 3)
 	temp = (volt - 1.25)/0.005
 	return temp
+
+def read3208(cahnnel):
+	data = ReadChannel_12bit(channel)
+	volt = ConvertVolts_12bit(data, 3)
+	# using IR sensor SI23
+	temp = (volt*1000/165.0-0.8)/(8.0/375.0)
+	return temp
+
 
 
 # to convert time interval list into a list of time coordinates for drawing the presets
@@ -257,7 +263,7 @@ class MainFrame(wx.Frame):
 		self.ADT_Volt = [round((elem*3.3)/float(1023),4) for elem in self.ADT_Data]
 		self.ADT_Temp = [(elem-1.25)/0.005 for elem in self.ADT_Volt]
 
-		# when using mcp3208(10 bit adc)
+		# when using mcp3208(12 bit adc)
 		#self.ADT_Volt = [round((elem*3.3)/float(4095),4) for elem in self.ADT_Data]
 		#self.ADT_Temp = [(elem*1000/165.0-0.8)/(8.0/375.0) for elem in self.ADT_Volt]
 
