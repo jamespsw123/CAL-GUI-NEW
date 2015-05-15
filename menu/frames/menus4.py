@@ -207,8 +207,8 @@ class Notebook2(fnb.FlatNotebook):
 
 		
 
-		self.AddPage(self.tabOne, "Furance One")
-		self.AddPage(self.tabTwo, "Furance Two")
+		self.AddPage(self.tabOne, "Furnace One")
+		self.AddPage(self.tabTwo, "Furnace Two")
 		self.AddPage(self.tabThree, "Gas Quenching")
 
 		   
