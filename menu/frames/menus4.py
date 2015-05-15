@@ -55,7 +55,6 @@ def read3008(channel):
 	return temp
 
 
-
 # to convert time interval list into a list of time coordinates for drawing the presets
 def newlist(l):
 	for i in range(len(l)):
@@ -255,12 +254,12 @@ class MainFrame(wx.Frame):
 	def CoolingProcess(self):
 		self.ADT_Time,self.ADT_Data = fastRead(self.FC_SR, self.FC_ET)
 		# when using mcp3008(10 bit adc)
-		#self.ADT_Volt = [round((elem*3.3)/float(1023),4) for elem in self.ADT_Data]
-		#self.ADT_Temp = [(elem-1.25)/0.005 for elem in self.ADT_Volt]
+		self.ADT_Volt = [round((elem*3.3)/float(1023),4) for elem in self.ADT_Data]
+		self.ADT_Temp = [(elem-1.25)/0.005 for elem in self.ADT_Volt]
 
 		# when using mcp3208(10 bit adc)
-		self.ADT_Volt = [round((elem*3.3)/float(4095),4) for elem in self.ADT_Data]
-		self.ADT_Temp = [(elem*1000/165.0-0.8)/(8.0/375.0) for elem in self.ADT_Volt]
+		#self.ADT_Volt = [round((elem*3.3)/float(4095),4) for elem in self.ADT_Data]
+		#self.ADT_Temp = [(elem*1000/165.0-0.8)/(8.0/375.0) for elem in self.ADT_Volt]
 
 		self.notebook.tabThree.axes.clear() 
 		self.notebook.tabThree.plot_data = self.notebook.tabOne.axes.plot(
@@ -548,7 +547,9 @@ class MainFrame(wx.Frame):
 
 
 	def on_redraw_timer(self, event):
-		temp = read3008(0)
+		hex_temp = getPV("01", ser)[7:11]
+		temp= int(hex_temp,16) 
+		adc_temp = read3008(0)
 		print "temp:"
 		print temp
 		print "Current set-temp:"
@@ -570,10 +571,12 @@ class MainFrame(wx.Frame):
 		self.panel2.grid.SetCellValue(self.GridIndex, 0, "%r"%(self.j1))
 		self.panel2.grid.SetCellValue(self.GridIndex, 1, "%r"%(temp))
 		self.panel2.grid.SetCellValue(self.GridIndex, 2, "%r"%(self.C_temps1[self.index]))
+		self.panel2.grid.SetCellValue(self.GridIndex, 3, "%r"%(adc_temp))
 
 		self.panel2.grid.SetCellAlignment(self.GridIndex,0,wx.ALIGN_CENTER,wx.ALIGN_CENTER) 
 		self.panel2.grid.SetCellAlignment(self.GridIndex,1,wx.ALIGN_CENTER,wx.ALIGN_CENTER) 
 		self.panel2.grid.SetCellAlignment(self.GridIndex,2,wx.ALIGN_CENTER,wx.ALIGN_CENTER)
+		self.panel2.grid.SetCellAlignment(self.GridIndex,3,wx.ALIGN_CENTER,wx.ALIGN_CENTER)
 		"""
 		msg = self.panel2.grid.GridTableMessage(self,
 			self.panel2.GRIDTABLE_NOTIFY_ROWS_APPENDED,
