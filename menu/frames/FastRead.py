@@ -11,25 +11,31 @@ Vref = 3.3
 #TMP36 = 1
 
 # Function to read SPI data from MCP3008 chip
-def ReadChannel(channel):
+def ReadChannel_10bit(channel):
 	# When using MCP3008(10 bit adc)
 	adc = spi.xfer2([1,(8+channel)<<4,0])
 	data = ((adc[1]&3) << 8) + adc[2]
+	return data
 
-	# For 12bit adc(MCP3208/MCP3204)
-	# adc = spi.xfer2([(6 + (channel >> 2)), ((channel &3) << 6), 0])
-	# data = ((adc[1]&15 << 8) + (adc[2]))
+def ReadChannel_12bit(channel):
+	adc = spi.xfer2([(6 + (channel >> 2)), ((channel &3) << 6), 0])
+	data = ((adc[1]&15 << 8) + (adc[2]))
 	return data
 
 # Function to convert data to voltage level,
 # Rounded to specified number of decimal places.
-def ConvertVolts(data, places):
+def ConvertVolts_10bit(data, places):
 	# When using MCP3008(10 bit adc)
 	volts = (data*Vref)/float(1023)
-	# When using MCP3208(12 bit adc)
-	# volts = (data*Vref)/float(4095)
 	volts = round(volts, places)
 	return volts
+
+def ConvertVolts_12bit(data, places):
+	# When using MCP3208(12 bit adc)
+	volts = (data*Vref)/float(4095)
+	volts = round(volts, places)
+	return volts
+
 
 # Function to calculate temperature from TMP36
 # Rounded to specified number of decimal places.
@@ -74,7 +80,7 @@ def fastRead(frequency, temp):
 	StartTime = time.time()
 	while (ReadChannel(ADT) > threshold):
 		# read from sensor	
-		temp_level.append(ReadChannel(ADT))
+		temp_level.append(ReadChannel_12bit(ADT))
 		time_elapsed.append(time.time() - StartTime)
 		time.sleep(delay)
 

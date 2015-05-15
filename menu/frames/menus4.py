@@ -260,12 +260,12 @@ class MainFrame(wx.Frame):
 	def CoolingProcess(self):
 		self.ADT_Time,self.ADT_Data = fastRead(self.FC_SR, self.FC_ET)
 		# when using mcp3008(10 bit adc)
-		self.ADT_Volt = [round((elem*3.3)/float(1023),4) for elem in self.ADT_Data]
-		self.ADT_Temp = [(elem-1.25)/0.005 for elem in self.ADT_Volt]
+		#self.ADT_Volt = [round((elem*3.3)/float(1023),4) for elem in self.ADT_Data]
+		#self.ADT_Temp = [(elem-1.25)/0.005 for elem in self.ADT_Volt]
 
-		# when using mcp3208(12 bit adc)
-		#self.ADT_Volt = [round((elem*3.3)/float(4095),4) for elem in self.ADT_Data]
-		#self.ADT_Temp = [(elem*1000/165.0-0.8)/(8.0/375.0) for elem in self.ADT_Volt]
+		# when using mcp3208 with SI23
+		self.ADT_Volt = [round((elem*3.3)/float(4095),4) for elem in self.ADT_Data]
+		self.ADT_Temp = [(elem*1000/165.0-0.8)/(8.0/375.0) for elem in self.ADT_Volt]
 
 		self.notebook.tabThree.axes.clear() 
 		self.notebook.tabThree.plot_data = self.notebook.tabOne.axes.plot(
