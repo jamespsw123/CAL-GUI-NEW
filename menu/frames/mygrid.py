@@ -10,7 +10,7 @@ class MyGrid(wx.Panel):
         # Add a panel so it looks the correct on all platforms
         #panel = wx.Panel(self, wx.ID_ANY)
         self.grid = gridlib.Grid(self)
-        self.grid.CreateGrid(0,3)
+        self.grid.CreateGrid(0,4)
         #grid.SetRowLabelSize(0)
  
         # change a couple column labels
@@ -22,6 +22,10 @@ class MyGrid(wx.Panel):
         
         self.grid.SetColLabelValue(2, "Current Set-point Temperature")
         self.grid.AutoSizeColumn(2)
+
+        self.grid.SetColLabelValue(3, "Indi-Thermocouple Temperature")
+        self.grid.AutoSizeColumn(3)
+
         self.grid.AppendRows(numRows=1)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
