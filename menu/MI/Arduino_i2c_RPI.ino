@@ -181,7 +181,7 @@ void STM_FUNC(String parameter, String buffer1){
 	for (index3 = tag1+3; index3 < tag2; index3 ++){
 		motorSpeed = motorSpeed + parameter[index3];
 	}	
-	position_num = parameter[tag3-1].toInt();
+	position_num = parameter[tag3-1];
 	Distance = distance.toInt();
 	Speed = motorSpeed.toInt();
 	if (parameter[(parameter.length() - 2)] == '1'){
@@ -204,7 +204,7 @@ void STM_FUNC(String parameter, String buffer1){
 
 	stepper.setMaxSpeed(Speed);
 	stepper.runToNewPosition(Distance);
-	if (position_num == 1 or position_num == 2){
+	if (position_num == '1' or position_num == '2'){
 		if (stepper.currentPosition()==int(0.95*float(gate1)*(3200/(3.14*114.3)))){
 			open_gate(1);
 		}
@@ -216,7 +216,7 @@ void STM_FUNC(String parameter, String buffer1){
 			close_gate(2);
 		}
 	}
-	else if (position_num == 3){
+	else if (position_num == '3'){
 		if (stepper.currentPosition() == int(1.3*float(gate2)*(3200/(3.14*114.3)))){
 			open_gate(2);
 		}
@@ -224,12 +224,12 @@ void STM_FUNC(String parameter, String buffer1){
 			close_gate(2);
 		}
 	}
-	else if (position_num == 4){
+	else if (position_num == '4'){
 		open_gate(1);
 		if (stepper.currentPosition() == int(0.99*float(gate1)*(3200/(3.14*114.3)))){
 			close_gate(1);
+		}
 	}
-
   	Serial.println("STM_FUNC LOOP END");
   	ClearBuffer();
 }
