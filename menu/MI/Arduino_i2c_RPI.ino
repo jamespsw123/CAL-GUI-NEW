@@ -38,8 +38,8 @@ void setup(){
 	stepper.setAcceleration(1000);
   	// led setup
 	pinMode(13, OUTPUT);
-	pinMode(7, OUTPUT); // GATE 1 RELAY PIN
-	pinMode(8, OUTPUT);	// GATE 2 RELAY PIN
+	pinMode(5, OUTPUT); // GATE 1 RELAY PIN
+	pinMode(6, OUTPUT);	// GATE 2 RELAY PIN
 
 	// serial monitor setup
 	Serial.begin(9600);
@@ -130,19 +130,19 @@ void requestEvent() {
 }
 void close_gate(int x){
 	if (x == 1){
-		digitalWrite(7, HIGH);
+		digitalWrite(5, HIGH);
 	}
 	else if (x == 2){
-		digitalWrite(8, HIGH);
+		digitalWrite(6, HIGH);
 	}
 
 }
 void open_gate(int x){
 	if (x == 1){
-		digitalWrite(7, LOW);
+		digitalWrite(5, LOW);
 	}
 	else if (x == 2){
-		digitalWrite(8, LOW);
+		digitalWrite(6, LOW);
 	}
 
 }
@@ -203,28 +203,28 @@ void STM_FUNC(String parameter, String buffer1){
 	stepper.setMaxSpeed(Speed);
 	stepper.runToNewPosition(Distance);
 	if (position_num == 1 or position_num == 2){
-		if (stepper.currentPosition()==int(0.95*float(gate1)*(3200/(3.14*70)))){
+		if (stepper.currentPosition()==int(0.95*float(gate1)*(3200/(3.14*114.3)))){
 			open_gate(1);
 		}
-		if (stepper.currentPosition() ==int(0.95*float(gate2)*(3200/(3.14*70)))){
+		if (stepper.currentPosition() ==int(0.95*float(gate2)*(3200/(3.14*114.3)))){
 			open_gate(2);
 			close_gate(1);
 		}
-		if (stepper.currentPosition() == int(1.3*float(gate2)*(3200/(3.14*70)))){
+		if (stepper.currentPosition() == int(1.3*float(gate2)*(3200/(3.14*114.3)))){
 			close_gate(2);
 		}
 	}
 	else if (position_num == 3){
-		if (stepper.currentPosition() == int(1.3*float(gate2)*(3200/(3.14*70)))){
+		if (stepper.currentPosition() == int(1.3*float(gate2)*(3200/(3.14*114.3)))){
 			open_gate(2);
 		}
-		if (stepper.currentPosition() == int(0.99*float(gate2)*(3200/(3.14*70)))){
+		if (stepper.currentPosition() == int(0.99*float(gate2)*(3200/(3.14*114.3)))){
 			close_gate(2);
 		}
 	}
 	else if (position_num == 4){
 		open_gate(1);
-		if (stepper.currentPosition() == int(0.99*float(gate1)*(3200/(3.14*70)))){
+		if (stepper.currentPosition() == int(0.99*float(gate1)*(3200/(3.14*114.3)))){
 			close_gate(1);
 	}
 
