@@ -173,9 +173,11 @@ void STM_FUNC(String parameter, String buffer1){
 			tag4 = index;
 		}
 	}
+	// get distance in string form
 	for (index2 = 0; index2 < tag1; index2++){
 		distance = distance + parameter[index2];
-	}	
+	}
+	// get speed in string form	
 	for (index3 = tag1+3; index3 < tag2; index3 ++){
 		motorSpeed = motorSpeed + parameter[index3];
 	}	
@@ -187,18 +189,18 @@ void STM_FUNC(String parameter, String buffer1){
 		}
 
 
-	Serial.println("*Distance:");
-	Serial.print(Distance);
-	Serial.println("Speed:");
-	Serial.print(Speed);
+	//Serial.println("*Distance:");
+	//Serial.print(Distance);
+	//Serial.println("Speed:");
+	//Serial.print(Speed);
 	//Serial.println("tag1");
 	//Serial.println(tag1);
 	//Serial.println("tag2");
 	//Serial.println(tag2);
 	//Serial.println("parameter length");
 	//Serial.println(parameter.length());
-	Serial.println("direction");
-	Serial.print(parameter[(parameter.length()-2)]);
+	//Serial.println("direction");
+	//Serial.print(parameter[(parameter.length()-2)]);
 
 	stepper.setMaxSpeed(Speed);
 	stepper.runToNewPosition(Distance);
