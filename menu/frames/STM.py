@@ -18,7 +18,7 @@ def Stepper(position, speed,SampleLength,position_num):
 		x = 1080
 	elif position_num == 4:
 		x = 750
-	distance_ = int(float(x - position - SampleLength)*(3200/(math.pi*70)))
+	distance_ = int(float(x - position - SampleLength)*(3200/(math.pi*114.3)))
 	distance_ = str(distance_)
 	Distance = distance_ + 'Dis'  
 	# convert speed unit rpm to stepper motor's microsteps/sec
