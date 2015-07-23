@@ -5,17 +5,21 @@ import wx
 import os
 import serial
 import spidev
+import MySQL
 
 import wx.aui,wx.lib.intctrl, wx.lib.scrolledpanel
 import wx.lib.agw.flatnotebook as fnb
+from pylab import *
 import numpy as np
 from numpy import arange, sin, pi
 import matplotlib
+import matplotlib.pyplot as plt
 matplotlib.interactive( True )
 matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
+
 
 import mygrid
 import panelOne
@@ -50,6 +54,7 @@ def read3008(channel):
 	data = ReadChannel_10bit(channel) # ReadChannel is defined in FastRead.py, assume thermocouple is on channel 0
 	volt = ConvertVolts_10bit(data, 3)
 	temp = round((volt - 1.25)/0.005, 3)
+	print data, volt, temp
 	return temp
 
 def read3208(cahnnel):
@@ -178,7 +183,48 @@ def setRamp(slave, Ramp, UD, port):
 		#print readlineCR(port)[1:]
 		#port.write(message2)
 		#print readlineCR(port)[1:]
-	
+
+#Connect to database
+db = MySQLdb.connect(host = 'localhost', port = 3306, user = 'root', passwd = 'Python')
+#Password is set when MySQL is installed.
+cursor = db.cursor()
+
+#Initialize database
+def dbInit():
+	a = cursor.execute("show databases like 'record'")
+	if a == 1:
+		cursor.execute("drop database record")
+	cursor.execute("create database record")
+	cursor.execute("use record")
+
+	cursor.execute("create table test(time char(20), temp int(4), C_temp int(4), adc_temp int(4))")
+	cursor.execute("create table cooling(time char(20), temp int(4))")
+
+#Write to database
+def dbWrite1(time, temp, C_temp, adc_temp):
+	cursor.execute("""insert into test(
+		time, temp, C_temp, adc_temp) values(%s, %s, %s, %s)""", (time, temp, C_temp, adc_temp))
+	db.commit()
+
+def dbWrite2(time, temp):
+	cursor.execute("""insert into cooling(
+		time, temp) values(%s, %s)""", (time, temp))
+	db.commit()
+
+#Outfile
+def dbOut(number):
+	if number == 1:
+		cursor.execute("""select time, temp, C_temp, adc_temp into outfile
+			"D:/CAL Project/test.txt"
+			lines terminated by "\r\n"
+			from test""")
+	elif number == 2:	
+		cursor.execute("""select time, temp into outfile
+			"D:/CAL Project/cooling.txt"
+			lines terminated by "\r\n"
+			from cooling""")
+#Export the data wehn recording is finished.
+#Make sure the folder "D:/CAL Project" exists.
 # creating Notebook class
 class Notebook(fnb.FlatNotebook):
 	def __init__(self, parent):
@@ -195,7 +241,7 @@ class Notebook(fnb.FlatNotebook):
 
 		self.AddPage(self.tabOne, "Furnace One")
 		self.AddPage(self.tabTwo, "Furnace Two")
-		self.AddPage(self.tabThree, "Combined Plot") 
+		self.AddPage(self.tabThree, "Cooling Process") 
 
 
 
@@ -214,7 +260,7 @@ class Notebook2(fnb.FlatNotebook):
 
 		self.AddPage(self.tabOne, "Furnace One")
 		self.AddPage(self.tabTwo, "Furnace Two")
-		self.AddPage(self.tabThree, "Gas Quenching")
+		self.AddPage(self.tabThree, "Cooling Setting")
 
 		   
 		
@@ -257,38 +303,11 @@ class MainFrame(wx.Frame):
 		self.RunFlag = 0
 		
 
-	def CoolingProcess(self):
-		self.ADT_Time,self.ADT_Data = fastRead(self.FC_SR, self.FC_ET)
-		# when using mcp3008(10 bit adc)
-		#self.ADT_Volt = [round((elem*3.3)/float(1023),4) for elem in self.ADT_Data]
-		#self.ADT_Temp = [(elem-1.25)/0.005 for elem in self.ADT_Volt]
-
-		# when using mcp3208 with SI23
-		self.ADT_Volt = [round((elem*3.3)/float(4095),4) for elem in self.ADT_Data]
-		self.ADT_Temp = [(elem*1000/165.0-0.8)/(8.0/375.0) for elem in self.ADT_Volt]
-
-		self.notebook.tabThree.axes.clear() 
-		self.notebook.tabThree.plot_data = self.notebook.tabOne.axes.plot(
-			self.ADT_Volt, 
-			linewidth=1,
-			color='purple',
-			)[0]
-		self.notebook.tabThree.plot_data.set_xdata(np.array(self.ADT_Time))
-		self.notebook.tabThree.plot_data.set_ydata(np.array(self.ADT_Temp))
-
-		self.notebook.tabThree.axes.set_xlabel('time (s)')
-		self.notebook.tabThree.axes.set_ylabel('Sample temprature (C)', color='purple')
-		self.adt_ymax = self.temps1[len(self.temps1) - 1]*1.15
-		self.adt_ymin = 0
-		self.adt_xmax = max(self.ADT_Time)*1.15
-		self.adt_xmin = 0
-		self.notebook.tabThree.axes.set_ybound(lower=self.adt_ymin, upper=self.adt_ymax)
-		self.notebook.tabThree.axes.set_xbound(lower=self.adt_xmin, upper=self.adt_xmax)
-		self.notebook.tabThree.axes.grid(True)
-		self.notebook.tabThree.canvas.draw()
+	
 
 
 	def InitUI(self):
+		self.cooling_ready = 0
 		self.flag = 0
 		self.Furnace1_Temp = []
 		self.j1 = []
@@ -462,8 +481,10 @@ class MainFrame(wx.Frame):
 
 		RunBox = wx.StaticBox(panel4,label='Start', style = wx.TE_CENTRE)
 		panel4Box2 = wx.StaticBoxSizer(RunBox,wx.VERTICAL)
-		self.MainRun = wx.Button(panel4, label = 'Run',size=(190, 30))
+		self.MainRun = wx.Button(panel4, label = 'Run Furnace',size=(190, 30))
+		self.Cooling = wx.Button(panel4, label = 'Start Cooling', size = (190, 30))
 		panel4Box2.Add(self.MainRun, 0, wx.EXPAND, 0)
+		panel4Box2.Add(self.Cooling, 0, wx.EXPAND, 0)
 
 		#-------------------------------------------------------------------------------------
 		# Set the sizers
@@ -491,6 +512,8 @@ class MainFrame(wx.Frame):
 		self.redraw_timer = wx.Timer(self)
 		self.Bind(wx.EVT_TIMER, self.on_redraw_timer, self.redraw_timer)
 		self.Bind(wx.EVT_BUTTON, self.onMonitor, self.MainRun)
+		# Bind Cooling Process
+		self.Bind(wx.EVT_BUTTON, self.CoolingProcess, self.Cooling)
 		# Get temperature
 		self.Bind(wx.EVT_BUTTON, self.onGetTemp, self.GetTemp)
 		# Get Current Setpoint
@@ -519,6 +542,72 @@ class MainFrame(wx.Frame):
 		self.notebook2.tabOne.Bind(wx.EVT_BUTTON, self.onUpdate1, self.notebook2.tabOne.updateButton)
 		self.notebook2.tabTwo.Bind(wx.EVT_BUTTON, self.onUpdate2, self.notebook2.tabTwo.updateButton)
 		self.notebook2.tabThree.Bind(wx.EVT_BUTTON, self.onUpdate3, self.notebook2.tabThree.upDate)
+
+	def CoolingProcess(self, event):
+		if self.cooling_ready == 1:
+			print "start cooling process"
+			self.ADT_Time,self.ADT_Data = fastRead(self.FC_SR, self.FC_ET)
+			# when using mcp3008(10 bit adc)
+			#self.ADT_Volt = [round((elem*3.3)/float(1023),4) for elem in self.ADT_Data]
+			#self.ADT_Temp = [(elem-1.25)/0.005 for elem in self.ADT_Volt]
+
+			# when using mcp3208 with SI23
+			"""
+			self.ADT_Volt = [round((elem*3.3)/float(4095),4) for elem in self.ADT_Data]
+			self.ADT_Temp = [(elem*1000/165.0-0.8)/(8.0/375.0) for elem in self.ADT_Volt]
+			"""
+			"""
+			self.notebook.tabThree.axes.clear() 
+			self.notebook.tabThree.plot_data = self.notebook.tabOne.axes.plot(
+				self.ADT_Volt, 
+				linewidth=1,
+				color='purple',
+				)[0]
+			self.notebook.tabThree.plot_data.set_xdata(np.array(self.ADT_Time))
+			self.notebook.tabThree.plot_data.set_ydata(np.array(self.ADT_Temp))
+
+			self.notebook.tabThree.axes.set_xlabel('time (s)')
+			self.notebook.tabThree.axes.set_ylabel('Sample temprature (C)', color='purple')
+			self.adt_ymax = self.temps1[len(self.temps1) - 1]*1.15
+			self.adt_ymin = 0
+			self.adt_xmax = max(self.ADT_Time)*1.15
+			self.adt_xmin = 0
+			self.notebook.tabThree.axes.set_ybound(lower=self.adt_ymin, upper=self.adt_ymax)
+			self.notebook.tabThree.axes.set_xbound(lower=self.adt_xmin, upper=self.adt_xmax)
+			self.notebook.tabThree.axes.grid(True)
+			self.notebook.tabThree.canvas.draw()
+			"""
+
+			RoundTime  = [round(elem, 3) for elem in self.ADT_Time]
+			ADT_VOLT = [round((elem*3.3)/float(1023),4) for elem in self.ADT_Data]
+			ADT_TEMP = [round((elem-1.25)/0.005,4) for elem in ADT_VOLT]
+			x = np.array(RoundTime)
+			y = np.array(ADT_TEMP)
+			dbWrite2(x,y)
+			dbOut(2)
+			self.notebook.tabThree.axes.clear()
+
+			self.notebook.tabThree.plot_data = self.notebook.tabThree.axes.plot(
+				y, 
+				linewidth=1,
+				color='green',
+				)[0]
+			self.notebook.tabThree.plot_data.set_xdata(x)
+			self.notebook.tabThree.plot_data.set_ydata(y)
+			ymax = max(y) + max(y)*0.15
+			ymin = min(y) - min(y)*0.15
+			xmax = max(x)
+			xmin = 0
+			self.notebook.tabThree.axes.set_ybound(lower=ymin, upper=ymax)
+			self.notebook.tabThree.axes.set_xbound(lower=xmin, upper=xmax)
+			self.notebook.tabThree.axes.set_xlabel('time (s)')
+			self.notebook.tabThree.axes.set_ylabel('Cooling Process (C)', color='g')
+			self.notebook.tabThree.axes.grid(True)
+			self.notebook.tabThree.canvas.draw()
+			
+
+		else:
+			print "Sample not ready!"
 
 	def onGetUPR(self,event):
 		hex_temp = getUPR("01", ser)[7:11]
@@ -596,6 +685,7 @@ class MainFrame(wx.Frame):
 			1)
 		self.panel2.GetView().ProgressTableMessage(msg)
 		"""
+		dbWrite1(self.j1[1], temp, self.C_temps1[self.index], adc_temp)
 		self.GridIndex+=1
 		#self.notebook.tabOne.canvas.draw()
 
@@ -607,15 +697,15 @@ class MainFrame(wx.Frame):
 					UD = 1
 					ramp = int((self.C_temps1[self.index] - temp) / (self.C_interval1[self.index]/60))
 					setRamp(01,ramp,UD,ser)
-					time.sleep(1)
+					time.sleep(0.2)
 					setTemp(01, self.C_temps1[self.index], ser)
 				elif self.index<len(self.C_temps1) and self.C_temps1[self.index]<self.C_temps1[self.index-1]:
 					UD = -1
 					ramp = int((temp - self.C_temps1[self.index]) / (self.C_interval1[self.index]/60))
 					setRamp(01,ramp,UD,ser)
-					time.sleep(1)
+					time.sleep(0.2)
 					setTemp(01, self.C_temps1[self.index], ser)
-			elif self.C_temps1[self.index+1] == None:
+			elif self.C_temps1[self.index+1] == None and (time.time()-self.Start_Time) - self.drawingInterval[-1] > 0:
 				self.redraw_timer.Stop()
 				print "Progress 1 Finished"
 				self.CoolingProcess()
@@ -637,18 +727,18 @@ class MainFrame(wx.Frame):
 					UD = 1
 					ramp = int((self.C_temps1[self.index] - temp) / (self.C_interval1[self.index]/60))
 					setRamp(01,ramp,UD,ser)
-					time.sleep(1)
+					time.sleep(0.2)
 					setTemp(01, self.C_temps1[self.index], ser)
 				elif self.index<len(self.C_temps1) and self.C_temps1[self.index]<self.C_temps1[self.index-1]\
 					and (temp - self.C_temps1[self.index])!=0:
 					UD = -1
 					ramp = int((temp - self.C_temps1[self.index]) / (self.C_interval1[self.index]/60))
 					setRamp(01,ramp,UD,ser)
-					time.sleep(1)
+					time.sleep(0.2)
 					setTemp(01, self.C_temps1[self.index], ser)
 				elif (temp - self.C_temps1[self.index])==0:
 					setRamp(01,ramp,1,ser)
-					time.sleep(1)
+					time.sleep(0.2)
 					setTemp(01, temp, ser)
 					self.redraw_timer.Stop()
 					print "Progress 1 Finished"
@@ -657,11 +747,21 @@ class MainFrame(wx.Frame):
 
 
 		
-		if self.index == (len(self.C_temps1)-1) and temp == self.C_temps1[self.index]:
+		elif self.index == (len(self.C_temps1)-1) and temp == self.C_temps1[self.index]:
 			self.redraw_timer.Stop()
 			print "Progress 1 Finished"
 			self.CoolingProcess()
 			#RunStepper(self.position3, self.speed, 3)
+
+		if (time.time()-self.Start_Time) > self.drawingInterval[-1]-0.1:
+			self.redraw_timer.Stop()
+			print "Progress 1 Finished"
+			self.cooling_ready = 1
+			dbOut(1)
+
+	
+
+
 		
 
 
@@ -778,7 +878,9 @@ class MainFrame(wx.Frame):
 
 	def onUpdate3(self, event):
 		self.notebook2.tabThree.ST_Input.SetLabel(str(self.temps1[len(self.temps1) - 1]))
+		# store the sampling rate
 		self.FC_ET = self.notebook2.tabThree.ET.GetValue()
+		# store the end temp
 		self.FC_SR = self.notebook2.tabThree.SR.GetValue()
 
 	def onFocus(self, event):

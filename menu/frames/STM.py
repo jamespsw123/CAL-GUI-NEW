@@ -11,14 +11,15 @@ def Stepper(position, speed,SampleLength,position_num):
 	# 1 stepper motor step equals 1.8 degree,
 	# 16 micro-steps equals 1 step
 	if position_num == 1:
-		x = 1800
+		x = 1750
 	elif position_num == 2:
 		x = 1490
 	elif position_num == 3:
-		x = 1080
+		x = 950
 	elif position_num == 4:
-		x = 750
-	distance_ = int(float(x - position - SampleLength)*(3200/(math.pi*114.3)))
+		x = 650
+	distance_ = int(float(x - position - SampleLength)*(3200/(math.pi*110.4)))
+	# 110.3 is the diameter of the motor wheel
 	distance_ = str(distance_)
 	Distance = distance_ + 'Dis'  
 	# convert speed unit rpm to stepper motor's microsteps/sec
@@ -34,7 +35,7 @@ class STM_T(wx.Frame): # STM_T is a frame for stepper motor testing
 
 	def __init__(self):
 		wx.Frame.__init__(self,None, title= 'Stepper Motor Test',
-			size=(450, 355), style= wx.STAY_ON_TOP)
+			size=(500, 450), style= wx.STAY_ON_TOP)
 		self.Centre()
 		self.statusbar = self.CreateStatusBar()
 		self.panel2 = panel2 = wx.Panel(self)
@@ -142,21 +143,21 @@ class STM_T(wx.Frame): # STM_T is a frame for stepper motor testing
 	# on position demonstration
 	def OnPD(self, event):
 		#Stepper(position, speed, SampleLength, position_num)
-		Stepper(450, MotorSpeed, 150, 4)
+		Stepper(400, MotorSpeed, 150, 4)
 		self.statusbar.SetStatusText("going to loading position")
-		time.sleep(10)
+		time.sleep(5)
 		Stepper(100, MotorSpeed, 150, 1)
 		self.statusbar.SetStatusText("going to waiting position")
-		time.sleep(25)
-		Stepper(130, MotorSpeed, 150, 2)
+		time.sleep(10)
+		Stepper(230, MotorSpeed, 150, 2)
 		self.statusbar.SetStatusText("going into first furnace")
-		time.sleep(15)
-		Stepper(50, MotorSpeed, 150, 3)
+		time.sleep(5)
+		Stepper(60, MotorSpeed, 150, 3)
 		self.statusbar.SetStatusText("going into cooling position")
-		time.sleep(15)
+		time.sleep(10)
 		Stepper(130, MotorSpeed, 150, 4)
 		self.statusbar.SetStatusText("going into 2nd furnace to reheat")
-		time.sleep(15)
+		time.sleep(5)
 		Stepper(450, MotorSpeed, 150, 4)
 		self.statusbar.SetStatusText("back to loading position")
 

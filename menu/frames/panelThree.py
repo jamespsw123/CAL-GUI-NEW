@@ -22,7 +22,7 @@ class TabPanel(wx.Panel):
         #self.axes.yaxis.tick_right()
         t = [0, 5, 15, 20, 25, 30, 35, 50, 70, 90]
         s = [0] 
-        self.s1 = [100, 400, 1000, 1000, 600, 400, 300, 300, 200]
+        self.s1 = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         s = s + self.s1
         self.data1 = s
         #self.y_max = 10
@@ -40,18 +40,11 @@ class TabPanel(wx.Panel):
 
         
         self.axes.set_xlabel('time (s)')
-        self.axes.set_ylabel('Preset temprature (C)', color='b')
+        self.axes.set_ylabel('Real-time temprature(C)', color='g')
         ymax = max(s) + max(s)*0.15
         ymin = 0
         self.axes.set_ybound(lower=ymin, upper=ymax)
 
-
-
-        for tl in self.axes.get_yticklabels():
-            tl.set_color('blue')
-        #self.axes.plot(x, y)
-        ax2 = self.axes.twinx()
-        ax2.set_ylabel('Real-time temprature(C)', color='g')
         self.canvas = FigureCanvas(self, -1, self.figure)
         self.canvas.draw()
         sizer.Add(self.canvas)

@@ -131,18 +131,22 @@ void requestEvent() {
 void close_gate(int x){
 	if (x == 1){
 		digitalWrite(5, HIGH);
+		Serial.println("Gate_1 Open"); 
 	}
 	else if (x == 2){
 		digitalWrite(6, HIGH);
+		Serial.println("Gate_2 Open");
 	}
 
 }
 void open_gate(int x){
 	if (x == 1){
 		digitalWrite(5, LOW);
+		Serial.println("Gate_1 Close");
 	}
 	else if (x == 2){
 		digitalWrite(6, LOW);
+		Serial.println("Gate_2 Close");
 	}
 
 }
@@ -205,28 +209,28 @@ void STM_FUNC(String parameter, String buffer1){
 	stepper.setMaxSpeed(Speed);
 	stepper.runToNewPosition(Distance);
 	if (position_num == '1' or position_num == '2'){
-		if (stepper.currentPosition()==int(0.95*float(gate1)*(3200/(3.14*114.3)))){
+		if (stepper.currentPosition()==int(0.95*float(gate1)*(3200/(3.14*110.3)))){
 			open_gate(1);
 		}
-		if (stepper.currentPosition() ==int(0.95*float(gate2)*(3200/(3.14*114.3)))){
+		if (stepper.currentPosition() ==int(0.95*float(gate2)*(3200/(3.14*110.3)))){
 			open_gate(2);
 			close_gate(1);
 		}
-		if (stepper.currentPosition() == int(1.3*float(gate2)*(3200/(3.14*114.3)))){
+		if (stepper.currentPosition() == int(1.3*float(gate2)*(3200/(3.14*110.3)))){
 			close_gate(2);
 		}
 	}
 	else if (position_num == '3'){
-		if (stepper.currentPosition() == int(1.3*float(gate2)*(3200/(3.14*114.3)))){
+		if (stepper.currentPosition() == int(1.3*float(gate2)*(3200/(3.14*110.3)))){
 			open_gate(2);
 		}
-		if (stepper.currentPosition() == int(0.99*float(gate2)*(3200/(3.14*114.3)))){
+		if (stepper.currentPosition() == int(0.99*float(gate2)*(3200/(3.14*110.3)))){
 			close_gate(2);
 		}
 	}
 	else if (position_num == '4'){
 		open_gate(1);
-		if (stepper.currentPosition() == int(0.99*float(gate1)*(3200/(3.14*114.3)))){
+		if (stepper.currentPosition() == int(0.99*float(gate1)*(3200/(3.14*110.3)))){
 			close_gate(1);
 		}
 	}

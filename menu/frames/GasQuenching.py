@@ -21,8 +21,8 @@ class TabPanel(wx.Panel):
 		self.End_Temp_Unit = wx.StaticText(self, label = "C")
 
 		self.Sampling_Rate = wx.StaticText(self, label = "Temperature Sampling rate: ") 
-		self.CR = wx.lib.intctrl.IntCtrl(self, 132, 0, size=(30, -1),style=wx.TE_RIGHT)
-		self.CR_Unit = wx.StaticText(self, label = "HZ")
+		self.SR = wx.lib.intctrl.IntCtrl(self, 132, 0, size=(30, -1),style=wx.TE_RIGHT)
+		self.SR_Unit = wx.StaticText(self, label = "HZ")
 
 		self.upDate = wx.Button(self, label="Update", size=(-1, 20))
 
@@ -34,8 +34,8 @@ class TabPanel(wx.Panel):
 		self.sizer2.Add(self.ET)
 		self.sizer2.Add(self.End_Temp_Unit, flag=wx.LEFT|wx.TOP|wx.BOTTOM, border=3)
 		self.sizer3.Add(self.Sampling_Rate, flag=wx.LEFT|wx.TOP|wx.BOTTOM, border=3)
-		self.sizer3.Add(self.CR, flag=wx.LEFT|wx.TOP|wx.BOTTOM, border=3)
-		self.sizer3.Add(self.CR_Unit, flag=wx.LEFT|wx.TOP, border=7)
+		self.sizer3.Add(self.SR, flag=wx.LEFT|wx.TOP|wx.BOTTOM, border=3)
+		self.sizer3.Add(self.SR_Unit, flag=wx.LEFT|wx.TOP, border=7)
 		self.sizer4.Add(self.upDate, flag = wx.LEFT, border= 90)
 
 		self.MainSizer.Add(self.sizer1)
@@ -50,7 +50,7 @@ class MyFrame(wx.Frame):
     #----------------------------------------------------------------------
     def __init__(self):
         """Constructor"""
-        wx.Frame.__init__(self, parent=None, title="Gas Quenching")
+        wx.Frame.__init__(self, parent=None, title="Cooling Setting")
         panel = TabPanel(self)
         self.Show()
         

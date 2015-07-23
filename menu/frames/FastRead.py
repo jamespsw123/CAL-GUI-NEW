@@ -63,7 +63,7 @@ def fastRead(frequency, temp):
 	current  = ((1.0/65.0)*temp + (60.0/13.0))/1000.0
 	# when using 3.3v Vref, load resister = 3.3/0.02 = 165
 	target_volt = 165*(current)
-	"""
+	
 	# We are using IR Sensor Sirius SI23, whose measurement
 	# range is 150C to 900C. Its output current is 4 to 20mA,
 	# mapping temp to current, we get their relationship:
@@ -79,16 +79,27 @@ def fastRead(frequency, temp):
 	time_elapsed = []
 	StartTime = time.time()
 	while (ReadChannel(ADT) > threshold):
+	#for i in range (0, 1000):
 		# read from sensor	
 		temp_level.append(ReadChannel_12bit(ADT))
 		time_elapsed.append(time.time() - StartTime)
 		time.sleep(delay)
-
-	#spi.close()
-	# print "Delay Time = %r"%delay
-	# print "Actual sample points recored in 10 seconds: %r"%(len(temp_level))
 	return time_elapsed,temp_level
-	
+	"""
+	temp_level=[]
+	time_elapsed = []
+	StartTime = time.time()
+	# if using 10bit adc and AD8495:
+	Threshold = (temp*0.005 + 1.25)*1024.0/3.3
+ 	#while (ReadChannel_10bit(ADT) > Threshold):
+	for i in range (0, 30):
+		# read from sensor	
+		temp_level.append(ReadChannel_10bit(ADT))
+		time_elapsed.append(time.time() - StartTime)
+		time.sleep(delay)
+
+	return time_elapsed,temp_level
+
 
 
 

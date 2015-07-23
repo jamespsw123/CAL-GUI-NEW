@@ -38,7 +38,7 @@ def ConvertTemp_AD8495(volt):
 # Define delay between readings
 delay = 0.01
 # Define the length of the test
-length = 15.1
+length = 5.0
 
 # Start the test
 StartTime = time.time()
@@ -48,15 +48,16 @@ while (time.time() - StartTime <= length):
 	thermocouple_level = ReadChannel(ADT)
 	thermocouple_volts = ConvertVolts(thermocouple_level,4)
 	temp1 = ConvertTemp_AD8495(thermocouple_volts)
-
+	"""
 	temp_level = ReadChannel(TMP36)
 	temp_volts = ConvertVolts(temp_level,2)
 	temp2 = ConvertTemp_TMP36(temp_level,2)
+	"""
 	# print result
 	#print "------------------------------------------"
 	print i
 	print("AD8495: {} ({}V) {} deg C".format(thermocouple_level,thermocouple_volts,temp1))
-	print("TMP36: {} ({}V) {} deg C".format(temp_level,temp_volts,temp2))
+	#print("TMP36: {} ({}V) {} deg C".format(temp_level,temp_volts,temp2))
 	i += 1
 	time.sleep(delay)
 
