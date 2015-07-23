@@ -34,7 +34,7 @@ STX = chr(2)
 ETX = chr(3)
 CR = chr(13)
 
-"""
+
 ser = serial.Serial(
 				port = '/dev/ttyUSB0',
 				baudrate = 9600,
@@ -43,13 +43,13 @@ ser = serial.Serial(
 				stopbits = serial.STOPBITS_ONE,
 				timeout = 0.2
 				)
-"""
+
 
 # read temperature from (mcp3008+ad8495) module
 def read3008(channel):
 	data = ReadChannel_10bit(channel) # ReadChannel is defined in FastRead.py, assume thermocouple is on channel 0
 	volt = ConvertVolts_10bit(data, 3)
-	temp = (volt - 1.25)/0.005
+	temp = round((volt - 1.25)/0.005, 3)
 	return temp
 
 def read3208(cahnnel):
@@ -80,7 +80,7 @@ def RunStepper(position, speed,SampleLength,position_num):
 		x = 1080
 	elif position_num == 4:
 		x = 750
-	distance_ = int(float(x - position-SampleLength)*(3200/(math.pi*70)))
+	distance_ = int(float(x - position-SampleLength)*(3200/(math.pi*110.4)))
 	distance_ = str(distance_)
 	Distance = distance_ + 'Dis'  
 	# convert speed unit rpm to stepper motor's microsteps/sec
@@ -88,7 +88,7 @@ def RunStepper(position, speed,SampleLength,position_num):
 	speed_ = str(speed_)
 	Speed = speed_ + 'Spd' 
 	position = str(position_num) + 'P'
-	direct = '0' + 'E'# 'E' stands for end.
+	direct = '1' + 'E'# 'E' stands for end.
 	cmd = Distance + Speed + position + direct
 	communication_send(addr, "stm", cmd)
 
@@ -291,6 +291,8 @@ class MainFrame(wx.Frame):
 	def InitUI(self):
 		self.flag = 0
 		self.Furnace1_Temp = []
+		self.j1 = []
+		self.ADC_Temp = []
 		self.Furnace2_Temp = []
 		self.Run_Time = []
 		imagesPath = os.path.abspath(os.path.join(os.path.dirname(__file__),".."))
@@ -538,19 +540,20 @@ class MainFrame(wx.Frame):
 		print temp
 
 	def onGetTemp(self, event):
-		"""
+		
 		# this function is reading the temperature from the furnace built-in controller
 		hex_temp = getPV("01", ser)[7:11]
 		temp = int(hex_temp,16)
 		print "current temp:" 
 		print temp
-		"""
+		
 		# read the tempertaure from the IR SENSOR,
 		# the data is read out from the ADC MCP3008, which converts the anolog signals to digital
+		"""
 		temp = read3008(0)
 		print "current temp:"
 		print temp
-
+		"""
 
 	def on_redraw_timer(self, event):
 		hex_temp = getPV("01", ser)[7:11]
@@ -562,19 +565,23 @@ class MainFrame(wx.Frame):
 		print self.C_temps1[self.index]
 		#print temp
 		self.Furnace1_Temp[1] = temp 
-		if self.Furnace1_Temp[1]:
-			self.Furnace1_Temp[0] = self.Furnace1_Temp[1]
-		self.Furnace1_Temp[1] = temp 
-		self.j1 =round((time.time() - self.Start_Time),2)
-
-		self.notebook.tabOne.ax2.plot([(self.j1-1), (self.j1)],self.Furnace1_Temp,color="green")
+		self.ADC_Temp[1] = adc_temp
+		#if self.Furnace1_Temp[1]:
+		#	self.Furnace1_Temp[0] = self.Furnace1_Temp[1]
+		#self.Furnace1_Temp[1] = temp 
+		self.j1[1] =round((time.time() - self.Start_Time),2)
+		self.notebook.tabOne.ax2.plot(self.j1,self.Furnace1_Temp,color="green")
+		self.notebook.tabOne.ax2.plot(self.j1, self.ADC_Temp,color="red")
+		self.Furnace1_Temp[0] = self.Furnace1_Temp[1]
+		self.j1[0] = self.j1[1]
+		self.ADC_Temp[0] = self.ADC_Temp[1]
 		#self.notebook.tabOne.ax2([self.xmin,self.xmax,self.ymin,self.ymax])
 		self.notebook.tabOne.ax2.set_ybound(lower=self.ymin, upper=self.ymax)
 		self.notebook.tabOne.ax2.set_xbound(lower=self.xmin, upper=self.xmax)
 		self.notebook.tabOne.canvas.draw()
 		self.panel2.grid.AppendRows(numRows=1, updateLabels=True)
 
-		self.panel2.grid.SetCellValue(self.GridIndex, 0, "%r"%(self.j1))
+		self.panel2.grid.SetCellValue(self.GridIndex, 0, "%r"%(self.j1[1]))
 		self.panel2.grid.SetCellValue(self.GridIndex, 1, "%r"%(temp))
 		self.panel2.grid.SetCellValue(self.GridIndex, 2, "%r"%(self.C_temps1[self.index]))
 		self.panel2.grid.SetCellValue(self.GridIndex, 3, "%r"%(adc_temp))
@@ -714,6 +721,10 @@ class MainFrame(wx.Frame):
 		self.temps1 = self.notebook2.tabOne.setpoint
 		self.Furnace1_Temp = [self.temps1[0]]
 		self.Furnace1_Temp.append(None)
+		self.j1 = [0.0]
+		self.j1.append(None)
+		self.ADC_Temp = [read3008(0)]
+		self.ADC_Temp.append(None)
 		self.interval1 = self.notebook2.tabOne.setTime
 		# C_temps1 and C_interval1 stands for communicational temps and intervals
 		self.C_temps1 = self.temps1[1:]
@@ -832,7 +843,7 @@ class MainFrame(wx.Frame):
 
 	def setSampleLength(self, event):
 		self.SampleLength = self.sl.GetValue()
-		self.sld1.SetMax(354 - self.SampleLength)
+		self.sld1.SetMax(354 - self.SampleLength)	
 		self.sld2.SetMax(410 - self.SampleLength)
 		self.sld3.SetMax(330 - self.SampleLength)
 		self.sld4.SetMax(750 - self.SampleLength)
