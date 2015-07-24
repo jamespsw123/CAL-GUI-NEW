@@ -91,7 +91,7 @@ def fastRead(frequency, temp):
 	# if using 10bit adc and AD8495:
 	Threshold = (temp*0.005 + 1.25)*1024.0/3.3
  	#while (ReadChannel_10bit(ADT) > Threshold):
-	for i in range (0, 600):
+	for i in range (0, 100):
 		# read from sensor	
 		temp_level.append(ReadChannel_10bit(ADT))
 		time_elapsed.append(time.time() - StartTime)
@@ -102,7 +102,7 @@ def fastRead(frequency, temp):
 	# print "Actual sample points recored in 10 seconds: %r"%(len(temp_level))
 	return time_elapsed,temp_level
 
-time,temp = fastRead(10, 30)
+time,temp = fastRead(20, 30)
 RoundTime  = [round(elem, 3) for elem in time]
 ADT_VOLT = [round((elem*3.3)/float(1023),4) for elem in temp]
 ADT_TEMP = [round((elem-1.25)/0.005,4) for elem in ADT_VOLT]

@@ -91,8 +91,9 @@ def fastRead(frequency, temp):
 	StartTime = time.time()
 	# if using 10bit adc and AD8495:
 	Threshold = (temp*0.005 + 1.25)*1024.0/3.3
- 	#while (ReadChannel_10bit(ADT) > Threshold):
-	for i in range (0, 30):
+	print temp, Threshold
+ 	while (ReadChannel_10bit(ADT) > Threshold):
+	#for i in range (0, 5):
 		# read from sensor	
 		temp_level.append(ReadChannel_10bit(ADT))
 		time_elapsed.append(time.time() - StartTime)

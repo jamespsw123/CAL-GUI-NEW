@@ -5,7 +5,7 @@ import wx
 import os
 import serial
 import spidev
-import MySQL
+import csv
 
 import wx.aui,wx.lib.intctrl, wx.lib.scrolledpanel
 import wx.lib.agw.flatnotebook as fnb
@@ -38,7 +38,6 @@ STX = chr(2)
 ETX = chr(3)
 CR = chr(13)
 
-
 ser = serial.Serial(
 				port = '/dev/ttyUSB0',
 				baudrate = 9600,
@@ -47,6 +46,9 @@ ser = serial.Serial(
 				stopbits = serial.STOPBITS_ONE,
 				timeout = 0.2
 				)
+
+Heating = [['time', 'furnace temp', 'current set point temp', 'thermocouple temp']]
+Cooling = ['time', 'temp']
 
 
 # read temperature from (mcp3008+ad8495) module
@@ -184,47 +186,7 @@ def setRamp(slave, Ramp, UD, port):
 		#port.write(message2)
 		#print readlineCR(port)[1:]
 
-#Connect to database
-db = MySQLdb.connect(host = 'localhost', port = 3306, user = 'root', passwd = 'Python')
-#Password is set when MySQL is installed.
-cursor = db.cursor()
 
-#Initialize database
-def dbInit():
-	a = cursor.execute("show databases like 'record'")
-	if a == 1:
-		cursor.execute("drop database record")
-	cursor.execute("create database record")
-	cursor.execute("use record")
-
-	cursor.execute("create table test(time char(20), temp int(4), C_temp int(4), adc_temp int(4))")
-	cursor.execute("create table cooling(time char(20), temp int(4))")
-
-#Write to database
-def dbWrite1(time, temp, C_temp, adc_temp):
-	cursor.execute("""insert into test(
-		time, temp, C_temp, adc_temp) values(%s, %s, %s, %s)""", (time, temp, C_temp, adc_temp))
-	db.commit()
-
-def dbWrite2(time, temp):
-	cursor.execute("""insert into cooling(
-		time, temp) values(%s, %s)""", (time, temp))
-	db.commit()
-
-#Outfile
-def dbOut(number):
-	if number == 1:
-		cursor.execute("""select time, temp, C_temp, adc_temp into outfile
-			"D:/CAL Project/test.txt"
-			lines terminated by "\r\n"
-			from test""")
-	elif number == 2:	
-		cursor.execute("""select time, temp into outfile
-			"D:/CAL Project/cooling.txt"
-			lines terminated by "\r\n"
-			from cooling""")
-#Export the data wehn recording is finished.
-#Make sure the folder "D:/CAL Project" exists.
 # creating Notebook class
 class Notebook(fnb.FlatNotebook):
 	def __init__(self, parent):
@@ -307,7 +269,7 @@ class MainFrame(wx.Frame):
 
 
 	def InitUI(self):
-		self.cooling_ready = 0
+		self.cooling_ready = 1
 		self.flag = 0
 		self.Furnace1_Temp = []
 		self.j1 = []
@@ -583,8 +545,6 @@ class MainFrame(wx.Frame):
 			ADT_TEMP = [round((elem-1.25)/0.005,4) for elem in ADT_VOLT]
 			x = np.array(RoundTime)
 			y = np.array(ADT_TEMP)
-			dbWrite2(x,y)
-			dbOut(2)
 			self.notebook.tabThree.axes.clear()
 
 			self.notebook.tabThree.plot_data = self.notebook.tabThree.axes.plot(
@@ -604,7 +564,14 @@ class MainFrame(wx.Frame):
 			self.notebook.tabThree.axes.set_ylabel('Cooling Process (C)', color='g')
 			self.notebook.tabThree.axes.grid(True)
 			self.notebook.tabThree.canvas.draw()
-			
+			#CoolingData = (x,y)
+			rows = zip(RoundTime,ADT_TEMP)
+			date = '07-25-2015'+ ' Cooling'
+			filename = date+'.csv'
+			resultFile = open(filename,'wb') 
+			wr = csv.writer(resultFile, dialect='excel')
+			wr.writerow(Cooling)
+			wr.writerows(rows)
 
 		else:
 			print "Sample not ready!"
@@ -685,7 +652,10 @@ class MainFrame(wx.Frame):
 			1)
 		self.panel2.GetView().ProgressTableMessage(msg)
 		"""
-		dbWrite1(self.j1[1], temp, self.C_temps1[self.index], adc_temp)
+		HeatingData = [self.j1[1], temp, self.C_temps1[self.index], adc_temp]
+		Heating.append(HeatingData)
+
+
 		self.GridIndex+=1
 		#self.notebook.tabOne.canvas.draw()
 
@@ -757,8 +727,11 @@ class MainFrame(wx.Frame):
 			self.redraw_timer.Stop()
 			print "Progress 1 Finished"
 			self.cooling_ready = 1
-			dbOut(1)
-
+			date = '07-25-2015'+ ' Heating'
+			filename = date+'.csv'
+			resultFile = open(filename,'wb') 
+			wr = csv.writer(resultFile, dialect='excel')
+			wr.writerows(Heating)
 	
 
 
