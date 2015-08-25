@@ -54,8 +54,9 @@ Cooling = ['time', 'temp']
 # read temperature from (mcp3008+ad8495) module
 def read3008(channel):
 	data = ReadChannel_10bit(channel) # ReadChannel is defined in FastRead.py, assume thermocouple is on channel 0
-	volt = ConvertVolts_10bit(data, 3)
-	temp = round((volt - 1.25)/0.005, 3)
+	volt = ConvertVolts_10bit(data, 4)
+	# Voltage divider, R1+R2 = 19.395kohm, R2=9.74khom, Y = (R1+R2)/R2 = 1.9892
+	temp = round((volt - 1.25)/0.005, 4)
 	print data, volt, temp
 	return temp
 
@@ -448,10 +449,19 @@ class MainFrame(wx.Frame):
 		panel4Box2.Add(self.MainRun, 0, wx.EXPAND, 0)
 		panel4Box2.Add(self.Cooling, 0, wx.EXPAND, 0)
 
+		TestInfoBox = wx.StaticBox(panel4, label='Test Info', style = wx.TE_CENTRE)
+		panel4Box3 = wx.StaticBoxSizer(TestInfoBox, wx.VERTICAL)
+		self.TestInfo = wx.TextCtrl(panel4, size=(150, -1),style=wx.TE_RIGHT)
+		panel4Box3.Add(wx.StaticText(panel4, label="Test Sample # :"), 
+		    flag=wx.LEFT|wx.TOP|wx.BOTTOM, border=5)
+		panel4Box3.Add(self.TestInfo,flag=wx.LEFT|wx.TOP|wx.BOTTOM, border=5)
+
+
 		#-------------------------------------------------------------------------------------
 		# Set the sizers
-		panel4Sizer.Add(panel4Box1, 0, wx.EXPAND)
-		panel4Sizer.Add(panel4Box2, 0,flag = wx.TOP|wx.EXPAND, border=50)
+		panel4Sizer.Add(panel4Box3, 0, flag = wx.TOP|wx.EXPAND, border=20)
+		panel4Sizer.Add(panel4Box1, 0, flag = wx.TOP|wx.EXPAND, border=20)
+		panel4Sizer.Add(panel4Box2, 0,flag = wx.TOP|wx.EXPAND, border=20)
 		panel4.SetSizer(panel4Sizer)
 #---------------------------------------------------------------------------------------------
 		# using wx.aui to layout these created panes
@@ -541,10 +551,14 @@ class MainFrame(wx.Frame):
 			"""
 
 			RoundTime  = [round(elem, 3) for elem in self.ADT_Time]
-			ADT_VOLT = [round((elem*3.3)/float(1023),4) for elem in self.ADT_Data]
+			ADT_VOLT = [round((elem*5.0)/float(1024),4) for elem in self.ADT_Data]
 			ADT_TEMP = [round((elem-1.25)/0.005,4) for elem in ADT_VOLT]
 			x = np.array(RoundTime)
 			y = np.array(ADT_TEMP)
+			ymax = max(y) + max(y)*0.15
+			ymin = min(y) - min(y)*0.15
+			xmax = max(x)
+			xmin = 0
 			self.notebook.tabThree.axes.clear()
 
 			self.notebook.tabThree.plot_data = self.notebook.tabThree.axes.plot(
@@ -554,10 +568,6 @@ class MainFrame(wx.Frame):
 				)[0]
 			self.notebook.tabThree.plot_data.set_xdata(x)
 			self.notebook.tabThree.plot_data.set_ydata(y)
-			ymax = max(y) + max(y)*0.15
-			ymin = min(y) - min(y)*0.15
-			xmax = max(x)
-			xmin = 0
 			self.notebook.tabThree.axes.set_ybound(lower=ymin, upper=ymax)
 			self.notebook.tabThree.axes.set_xbound(lower=xmin, upper=xmax)
 			self.notebook.tabThree.axes.set_xlabel('time (s)')
@@ -566,7 +576,7 @@ class MainFrame(wx.Frame):
 			self.notebook.tabThree.canvas.draw()
 			#CoolingData = (x,y)
 			rows = zip(RoundTime,ADT_TEMP)
-			date = '07-25-2015'+ ' Cooling'
+			date = self.TestInfo.GetValue()+ ' Cooling'
 			filename = date+'.csv'
 			resultFile = open(filename,'wb') 
 			wr = csv.writer(resultFile, dialect='excel')
@@ -727,7 +737,7 @@ class MainFrame(wx.Frame):
 			self.redraw_timer.Stop()
 			print "Progress 1 Finished"
 			self.cooling_ready = 1
-			date = '07-25-2015'+ ' Heating'
+			date = self.TestInfo.GetValue()+ ' Heating'
 			filename = date+'.csv'
 			resultFile = open(filename,'wb') 
 			wr = csv.writer(resultFile, dialect='excel')

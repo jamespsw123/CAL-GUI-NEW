@@ -26,7 +26,7 @@ def ReadChannel_12bit(channel):
 # Rounded to specified number of decimal places.
 def ConvertVolts_10bit(data, places):
 	# When using MCP3008(10 bit adc)
-	volts = (data*Vref)/float(1024)
+	volts = (data*Vref)/float(1023)
 	volts = round(volts, places)
 	return volts
 
@@ -90,7 +90,7 @@ def fastRead(frequency, temp):
 	time_elapsed = []
 	StartTime = time.time()
 	# if using 10bit adc and AD8495:
-	Threshold = (temp*0.005 + 1.25)*1024.0/Vref
+	Threshold = (temp*0.005 + 1.25)*1024.0/3.3
 	print temp, Threshold
  	while (ReadChannel_10bit(ADT) > Threshold):
 	#for i in range (0, 30):
