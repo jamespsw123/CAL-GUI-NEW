@@ -60,12 +60,12 @@ def solenoid_thread():
 	# thread.start()
 
 	# in main():
-	# solenoid_position[0] = read_poten(poten_channel)
-	# solenoid_position.append(None)
+	# sample_position[0] = read_poten(poten_channel)
+	# sample_position.append(None)
 
 	# solenoid_position is a list that passed down from the main thread
 	# solenoid_switch is a flag, it should be set True whenever the main thread is quit
-	global solenoid_switch,solenoid_position
+	global solenoid_switch,sample_position
 	# lock is used to make sure that the first position passed from the main thread is correct
 	# define the lock in main()
 	# lock = threading.Lock()
@@ -82,6 +82,7 @@ def solenoid_thread():
 			gate_control(direction, sample_position[1], Gate_1_pos, Solenoid_Pin_1)
 			gate_control(direction, sample_position[2], Gate_2_pos, Solenoid_Pin_2)
 			gate_control(direction, sample_position[3], Gate_3_pos, Solenoid_Pin_3)
+			sample_position[0] = sample_position[1] 
 	finally:
 		lock.release()
 
